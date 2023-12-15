@@ -1,0 +1,45 @@
+version: "3.4"
+
+services:
+  db:
+    image: orientdb
+    ports:
+      - 2424:2424
+      - 2480:2480
+#    volumes:
+#      - ./db/config:/orientdb/config
+#      - ./db/databases:/orientdb/databases
+#      - ./db/backup:/orientdb/backup
+    environment:
+      ORIENTDB_ROOT_PASSWORD: "rootpwd"
+
+  py-srv:
+    build: py-srv
+    healthcheck:
+      test: "exit 0"
+    command: sh -c "/wait && python app.py"
+    environment:
+      - WAIT_HOSTS=db:2424
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=30
+      - WAIT_HOST_CONNECT_TIMEOUT=30
+    depends_on:
+      - db
+    links:
+      - "db:db"
+    ports:
+      - "80:5000"
+#      
+#  py-test-srv:
+#    build:
+#      context: py-test-srv
+#    command: sh -c "/wait && python app.py"
+#    environment:
+#      - WAIT_HOSTS=db:7687,py-srv:5000
+#      - WAIT_HOSTS_TIMEOUT=300
+#      - WAIT_SLEEP_INTERVAL=30
+#      - WAIT_HOST_CONNECT_TIMEOUT=30
+#    depends_on:
+#      - py-srv
+#    links:
+#      - "py-srv:py-srv"
